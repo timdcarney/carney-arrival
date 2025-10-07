@@ -230,11 +230,11 @@ const storage = {
  * APP STATE — single in-memory snapshot from backend
  * ============================================================ */
 const state = {
-  settings:null,            // {windowStart, windowEnd, submissionsDeadline, submissionsOpen, actualArrivalAt}
-  predictions:[],           // [{id,name,predictedAt,submittedAt,clientId}]
-  sortMode:'submittedAt',   // 'submittedAt' | 'predictedAt' (before result)
+  settings:null,
+  predictions:[],
+  sortMode:'predictedAt',   // default: sort by predicted time
   adminUnlocked:false,
-  winner:null               // computed when actualArrivalAt is set
+  winner:null
 };
 
 /* ============================================================
