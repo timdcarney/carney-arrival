@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <!-- Ensures responsive layout on phones -->
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Carney Arrival Predictor</title>
+  <!-- Subtle address bar color on mobile -->
+  <meta name="theme-color" content="#f6f3ff">
+
+  <style>
+    /* ============================
+       Pastel, rounded, calm design
+       Mobile-first, no framework
+       ============================ */
+    :root{
+      --bg:#f8fafc;        /* page background (cool gray) */
+      --card:#ffffff;      /* card background */
+      --ink:#0f172a;       /* main text color (slate-900) */
+      --muted:#64748b;     /* secondary text (slate-500) */
+      --accent:#a78bfa;    /* gradient start (violet-400) */
+      --accent-2:#f0abfc;  /* gradient end (fuchsia-300) */
+      --good:#22c55e;      /* success green */
+      --warn:#f59e0b;      /* warning amber */
+      --bad:#ef4444;       /* red */
+      --radius:18px;       /* rounded corners */
+    }
+
+    *{ box-sizing:border-box }
+
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+    }
+
+    .wrap{ max-width:720px; margin:0 auto; padding:16px 16px 96px }
+
+    header{ display:flex; align-items:center; gap:12px; padding:12px 0 }
+    .logo{ font-size:28px }
+    .title{ font-weight:800; font-size:20px; line-height:1.1 }
+
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:0 8px 24px rgba(2,6,23,.06);
+      padding:14px;
+    }
+
+    .grid{ display:grid; gap:12px }
+    .two{ grid-template-columns:repeat(2,1fr) }
+    @media (min-width:640px){ .two{ grid-template-columns:repeat(2,1fr) } }
+
+    label{ display:block; font-size:13px; color:var(--muted); margin-bottom:6px }
+
+    input, select, button{
+      width:100%;
+      padding:12px 14px;
+      border:1px solid #e5e7eb;
+      border-radius:12px;
+      font-size:16px;
+      background:white;
+    }
+
+    input:focus, select:focus, button:focus{
+      outline:3px solid #e9d5ff;   /* soft violet ring */
+      border-color:#d8b4fe;
+    }
+
+    button{
+      cursor:pointer;
+      border:none;
+      background:linear-gradient(180deg, var(--accent), var(--accent-2));
+      color:white;
+      font-weight:700;
+    }
+    button.secondary{ background:#f1f5f9; color:#0f172a; border:1px solid #e5e7eb }
+
+    .muted{ color:var(--muted) }
+    .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap }
+
+    /* Status banner styles for state signaling */
+    .status{ padding:10px 12px; border-radius:12px; background:#f1f5f9 }
+    .status.open{ background:#ecfeff }     /* open: light teal */
+    .status.closed{ background:#fff7ed }   /* closed: light orange */
+    .status.winner{ background:#ecffec }   /* winner posted: light green */
+
+    /* Leaderboard table with pill-row style */
+    table{ width:100%; border-collapse:separate; border-spacing:0 8px }
+    th{ font-size:12px; color:var(--muted); text-align:left; padding:0 8px }
+    td{ background:var(--card); padding:12px 8px; border-top:1px solid #eef2f7; border-bottom:1px solid #eef2f7 }
+    tr td:first-child{ border-left:1px solid #eef2f7; border-radius:12px 0 0 12px }
+    tr td:last-child{ border-right:1px solid #eef2f7; border-radius:0 12px 12px 0 }
+
+    .badge{ display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; background:#f1f5f9; font-size:12px }
+    footer{
+      position:fixed; inset:auto 0 0 0;
+      background:rgba(255,255,255,.9); backdrop-filter:saturate(1.2) blur(6px);
+      padding:10px 14px; border-top:1px solid #e5e7eb; display:flex; justify-content:center
+    }
+    .tiny{ font-size:12px }
+    .countdown{ font-variant-numeric:tabular-nums; font-weight:800 }
+    .pill{ border-radius:999px; padding:4px 10px; font-size:12px; background:#eef2ff; color:#3730a3 }
+    .admin-toggle{ background:#fee2e2; color:#991b1b; border:1px solid #fecaca } /* red-ish to signify admin */
+
+    .winner{ background:#f0fdf4 !important } /* highlight winning row */
+    .medal{ font-size:18px }
+    .hidden{ display:none !important }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <!-- Header with share button -->
+    <header>
+      <div class="logo">👶⏰💞</div>
+      <div>
+        <div class="title">Carney Arrival Predictor</div>
+        <div class="muted tiny">Made with love while waiting for Baby Carney 💕</div>
+      </div>
+      <div style="margin-left:auto"><button id="shareBtn" class="secondary">Share</button></div>
+    </header>
+
+    <!-- Dynamic status: open/closed/winner -->
+    <div id="statusBanner" class="status card">Loading…</div>
+
+    <!-- Countdown (auto-updates to window end) -->
+    <div class="card row" id="countdownBlock">
+      <div class="badge">⏳ Submissions close in <span id="countdown" class="countdown">--:--:--</span></div>
+      <span id="windowRange" class="muted tiny"></span>
+      <!-- Sorting hint toggles depending on state -->
+      <span class="pill" id="sortHint">Sorting: latest submissions</span>
+    </div>
+
+    <!-- Submit prediction form -->
+    <form id="predictForm" class="card grid" aria-label="Submit a prediction">
+      <div class="grid two">
+        <div>
+          <label for="name">Your Name</label>
+          <input id="name" name="name" required placeholder="Pat, Granny, etc." autocomplete="name" />
+        </div>
+        <div>
+          <label for="phone">Phone (for dedupe & optional updates)</label>
+          <!-- Input type is text + inputmode=tel for better masking flexibility -->
+          <input id="phone" name="phone" required inputmode="tel" placeholder="(###) ###-####" />
+        </div>
+      </div>
+
+      <div class="grid two">
+        <div>
+          <label for="predDate">Predicted Date</label>
+          <input id="predDate" type="date" required />
+        </div>
+        <div>
+          <label for="predTime">Predicted Time</label>
+          <input id="predTime" type="time" required />
+        </div>
+      </div>
+
+      <div class="grid two">
+        <div>
+          <label for="confidence">Confidence (1–5)</label>
+          <select id="confidence" required>
+            <option value="5">5 – Very confident</option>
+            <option value="4">4</option>
+            <option value="3" selected>3 – Middle</option>
+            <option value="2">2</option>
+            <option value="1">1 – Just for fun</option>
+          </select>
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <button id="submitBtn">Submit Prediction</button>
+        </div>
+      </div>
+
+      <div class="tiny muted">
+        We’ll only show the last 4 digits of your phone on the board. One guess per phone during the window.
+      </div>
+    </form>
+
+    <!-- Leaderboard -->
+    <div class="card grid" id="boardCard">
+      <div class="row" style="justify-content:space-between">
+        <div class="row">
+          <strong>Leaderboard</strong>
+          <span id="entriesCount" class="pill">0 entries</span>
+        </div>
+        <div class="row">
+          <!-- While actualArrivalAt is unset, this toggles between "latest submissions" and "by predicted time" -->
+          <button id="sortModeBtn" class="secondary tiny" style="padding:8px 10px">Toggle Sort</button>
+        </div>
+      </div>
+      <div class="grid">
+        <table aria-label="Predictions leaderboard">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Predicted</th>
+              <th>Conf.</th>
+              <th>Submitted</th>
+              <th>Δ (if set)</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Admin panel (locked behind passphrase) -->
+    <div class="card grid" id="adminCard">
+      <div class="row" style="justify-content:space-between">
+        <strong>Admin</strong>
+        <!-- This only shows/hides the panel; actual actions still need passphrase -->
+        <button id="adminToggle" class="admin-toggle tiny" style="padding:8px 10px">Admin Mode</button>
+      </div>
+
+      <div id="adminPanel" class="grid hidden" aria-label="Admin controls">
+        <!-- Admin unlock (soft gate) -->
+        <div class="grid two">
+          <div>
+            <label>Passphrase</label>
+            <input id="adminPass" type="password" placeholder="passphrase" />
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <button id="unlockBtn" class="secondary">Unlock</button>
+          </div>
+        </div>
+
+        <!-- Game window controls -->
+        <div class="grid two">
+          <div>
+            <label>Window Start (local)</label>
+            <input id="windowStart" type="datetime-local" />
+          </div>
+          <div>
+            <label>Window End (auto 72h)</label>
+            <!-- End is derived client-side for preview, but persist happens server-side -->
+            <input id="windowEnd" type="datetime-local" disabled />
+          </div>
+        </div>
+        <div class="row">
+          <button id="saveWindowBtn">Save Window</button>
+          <button id="toggleSubBtn" class="secondary">Toggle Submissions</button>
+        </div>
+
+        <!-- Finalize actual arrival & compute winner -->
+        <div class="grid two">
+          <div>
+            <label>Actual Arrival (local)</label>
+            <input id="actualArrival" type="datetime-local" />
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <button id="setActualBtn">Set Actual & Rank</button>
+          </div>
+        </div>
+
+        <!-- Export & winner display -->
+        <div class="row">
+          <button id="exportBtn" class="secondary">Export CSV</button>
+          <span id="winnerBadge" class="badge hidden">Winner: <span id="winnerText"></span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sticky footer -->
+  <footer>
+    <div class="tiny">Made with love while waiting for Baby Carney 💕</div>
+  </footer>
+
+<script>
+/* ============================================================
+   CONFIG (Edit these values only)
+   ============================================================ */
+const CONFIG = {
+  // After you deploy the Apps Script as a web app,
+  // paste its URL here (e.g., https://script.google.com/macros/s/AKfycb.../exec).
+  API_URL: 'PASTE_YOUR_APPS_SCRIPT_WEBAPP_URL_HERE',
+
+  // Only shown as a hint in UI copy (not used for auth)
+  ADMIN_PASSPHRASE_HINT: 'Ask Tim 💪',
+
+  APP_NAME: 'Carney Arrival Predictor',
+};
+
+/* ================================*
