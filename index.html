@@ -160,16 +160,22 @@
     </div>
   </div>
 
-  <footer>
-  <div class="tiny">
-    Made with love while waiting for Baby Carney 💕 ·
-    <a href="./heatmap.html">Heatmap</a> ·
-    <a href="./admin.html">Admin</a>
+  <footer style="text-align:center;margin-top:24px;padding:16px 0;border-top:1px solid #e5e7eb;font-size:13px;color:#64748b;">
+  <div style="margin-bottom:6px;">
+    <a href="/carney-arrival/heatmap.html" style="margin:0 8px;text-decoration:none;color:inherit;">🔥 Heatmap</a> |
+    <a href="/carney-arrival/nextup.html" style="margin:0 8px;text-decoration:none;color:inherit;">⏱️ Who’s Up Next</a>
+  </div>
+  <div style="font-size:11px;margin-top:4px;">
+    Built with 💕 for Baby Carney — updated <span id="lastUpdated"></span>
   </div>
 </footer>
 
-
 <script>
+  // Show last updated timestamp
+  document.getElementById('lastUpdated').textContent =
+    new Date().toLocaleString([], {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'});
+</script>
+
 /* ============================================================
  * CONFIG — UPDATE ONLY THESE VALUES
  * - API_URL must end with /exec (Apps Script Web App)
