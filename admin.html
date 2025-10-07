@@ -1,1 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Carney Arrival — Admin</title>
+  <style>
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;background:#f8fafc;color:#0f172a}
+    .wrap{max-width:720px;margin:0 auto;padding:16px 16px 48px}
+    .card{background:#fff;border-radius:18px;box-shadow:0 8px 24px rgba(2,6,23,.06);padding:14px}
+    .grid{display:grid;gap:12px}
+    .two{grid-template-columns:1fr 1fr}
+    @media (max-width:640px){.two{grid-template-columns:1fr}}
+    label{display:block;font-size:14px;color:#64748b;margin-bottom:6px}
+    input,button{width:100%;padding:12px 14px;border:1px solid #e5e7eb;border-radius:12px;font-size:16px;background:#fff}
+    button{cursor:pointer;background:linear-gradient(180deg,#a78bfa,#f0abfc);color:#fff;border:none;font-weight:700}
+    button.secondary{background:#f1f5f9;color:#0f172a;border:1px solid #e5e7eb}
+    a.btn{padding:8px 12px;border:1px solid #e5e7eb;border-radius:10px;background:#f1f5f9;color:#0f172a;text-decoration:none}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .tiny{font-size:12px;color:#64748b}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="row" style="margin-bottom:12px">
+      <strong>Carney Arrival — Admin</strong>
+      <a class="btn" href="./">← Back</a>
+    </div>
+
+    <div class="card grid">
+      <div class="grid two">
+        <div><label>Passphrase</label><input id="pass" type="password"></div>
+        <div><button id="unlock" class="secondary">Unlock</button></div>
+      </div>
+      <div class="grid two">
+        <div>
+          <label>Window Start (local)</label>
+          <input id="start" type="datetime-local">
+          <div class="tiny">End auto-sets +7 days; deadline = EOD.</div>
+        </div>
+        <div>
+          <label>Window End</label>
+          <input id="end" type="datetime-local" disabled>
+        </div>
+      </div>
+      <div class="row">
+        <button id="saveWin">Save Window</button>
+        <button id="toggle" class="secondary">Toggle Submissions</button>
+      </div>
+      <div class="grid two">
+        <div>
+          <label>Actual Arrival (local)</label>
+          <input id="actual" type="datetime-local">
+        </div>
+        <div><button id="setActual">Set Actual & Rank</button></div>
+      </div>
+      <div class="row">
+        <button id="export" class="secondary">Export CSV</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./assets/core.js"></script>
+  <script>
+    (async ()=>{
+      const $ = CAP.$, fmt = CAP.fmt, s = CAP.storage;
+      let unlocked = false;
+
+      const syncFields = ()=>{
+        const st = CAP.state.settings;
+        $('#start').value = fmt.toLocalInput(st.windowStart);
+        $('#end').value   = fmt.toLocalInput(st.windowEnd);
+        $('#actual').value = fmt.toLocalInput(st.actualArrivalAt);
+      };
+
+      try{ await CAP.loadAll(); syncFields(); }catch(e){ alert('Load failed: '+e.message); }
+
+      $('#unlock').addEventListener('click', ()=>{ unlocked = !!$('#pass').value; alert(unlocked?'Admin unlocked':'Enter passphrase'); });
+
+      $('#start').addEventListener('change', ()=>{
+        const start = new Date($('#start').value);
+        const end = new Date(start.getTime()+7*24*3600*1000);
+        $('#end').value = fmt.toLocalInput(end.toISOString());
+      });
+
+      $('#saveWin').addEventListener('click', async ()=>{
+        if(!unlocked) return alert('Unlock first');
+        const v=$('#start').value; if(!v) return alert('Pick start');
+        try{ await s.setWindow(new Date(v).toISOString(), $('#pass').value); await CAP.loadAll(); syncFields(); alert('Saved'); }catch(e){ alert(e.message); }
+      });
+
+      $('#toggle').addEventListener('click', async ()=>{
+        if(!unlocked) return alert('Unlock first');
+        try{ await s.toggleSubmissions($('#pass').value); await CAP.loadAll(); alert('Toggled'); }catch(e){ alert(e.message); }
+      });
+
+      $('#setActual').addEventListener('click', async ()=>{
+        if(!unlocked) return alert('Unlock first');
+        const v=$('#actual').value; if(!v) return alert('Pick actual time');
+        try{ await s.setActualArrival(new Date(v).toISOString(), $('#pass').value); await CAP.loadAll(); alert('Set'); }catch(e){ alert(e.message); }
+      });
+
+      $('#export').addEventListener('click', async ()=>{
+        if(!unlocked) return alert('Unlock first');
+        try{
+          const {csv}=await s.exportCSV($('#pass').value);
+          const blob=new Blob([csv], {type:'text/csv;charset=utf-8;'});
+          const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='carney-arrival-predictions.csv'; a.click();
+        }catch(e){ alert(e.message); }
+      });
+    })();
+  </script>
+</body>
+</html>
 
