@@ -100,7 +100,7 @@
       </div>
 
       <button id="submitBtn">Submit Prediction</button>
-      <div class="tiny muted">One guess per device during this window. “Price Is Right” scoring: closest <em>without going over</em> wins.</div>
+        <div class="tiny muted">Closest <em>without going over</em> wins.</div>
     </form>
 
     <!-- Leaderboard -->
@@ -116,7 +116,6 @@
               <th>Name</th>
               <th>Predicted</th>
               <th>Submitted</th>
-              <th>Δ (if set)</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
@@ -334,11 +333,11 @@ function renderBoard(){
   rows.forEach(p=>{
     const isWinner = s.actualArrivalAt && state.winner && p.id===state.winner.id;
     const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${isWinner?'🥇 ':''}${escapeHtml(p.name)}</td>
-      <td>${fmt.toLocal(p.predictedAt)}</td>
-      <td class="muted">${fmt.toLocal(p.submittedAt)}</td>
-      <td class="muted">${s.actualArrivalAt ? fmt.deltaLabel(p.predictedAt, s.actualArrivalAt) : ''}</td>`;
+   tr.innerHTML = `
+  <td>${isWinner?'🥇 ':''}${escapeHtml(p.name)}</td>
+  <td>${fmt.toLocal(p.predictedAt)}</td>
+  <td class="muted">${fmt.toLocal(p.submittedAt)}</td>`;
+;
     if(isWinner) tr.classList.add('winner');
     tbody.appendChild(tr);
   });
