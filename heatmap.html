@@ -5,16 +5,31 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Carney Arrival — Heatmap</title>
   <meta name="theme-color" content="#f6f3ff">
-  <style>
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;background:#f8fafc;color:#0f172a}
-    .wrap{max-width:900px;margin:0 auto;padding:16px 16px 48px}
-    .card{background:#fff;border-radius:18px;box-shadow:0 8px 24px rgba(2,6,23,.06);padding:14px}
-    .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
-    .muted{color:#64748b}.tiny{font-size:12px}
-    .heatmap-wrap{overflow:auto}.hm-svg{width:100%;height:auto;max-width:100%}
-    .hm-label{font-size:11px;fill:#64748b}.hm-cell{stroke:#e5e7eb;stroke-width:.5;rx:4;ry:4}
-    a.btn{padding:8px 12px;border:1px solid #e5e7eb;border-radius:10px;background:#f1f5f9;color:#0f172a;text-decoration:none}
-  </style>
+ <style>
+  :root{ --ink:#0f172a; --muted:#64748b; --bg:#f8fafc; --card:#fff; --radius:18px; }
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  .wrap{max-width:980px;margin:0 auto;padding:16px 16px 48px}
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:0 8px 24px rgba(2,6,23,.06);padding:14px}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .muted{color:var(--muted)} .tiny{font-size:12px}
+  .heatmap-wrap{overflow:hidden} /* we’ll size to fit container */
+  .legend{display:flex;align-items:center;gap:8px;margin:10px 0 0 0}
+  .legend .swatch{width:18px;height:10px;border-radius:6px;border:1px solid #e5e7eb}
+  .btn{padding:8px 12px;border:1px solid #e5e7eb;border-radius:10px;background:#f1f5f9;color:#0f172a;text-decoration:none}
+  /* SVG text + cells */
+  .hm-svg{width:100%;height:auto;max-width:100%}
+  .hm-day{font-size:13px;fill:var(--muted);font-weight:600}
+  .hm-hour{font-size:12px;fill:var(--muted)}
+  .hm-cell{stroke:#e5e7eb;stroke-width:.6;rx:6;ry:6}
+  .hm-cell:hover{stroke:#9ca3af}
+  .hm-count{font-size:11px;fill:#111827;font-weight:700;pointer-events:none}
+  .gridline{stroke:#f1f5f9;stroke-width:1}
+  @media (max-width:600px){
+    .hm-day{font-size:12px}
+    .hm-hour{font-size:11px}
+  }
+</style>
+
 </head>
 <body>
   <div class="wrap">
