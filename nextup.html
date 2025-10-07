@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Carney Arrival — Who’s Up Next</title>
+  <meta name="theme-color" content="#f6f3ff">
+  <style>
+    :root{
+      --bg:#f8fafc; --card:#fff; --ink:#0f172a; --muted:#64748b;
+      --accent:#a78bfa; --accent-2:#f0abfc; --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+    .wrap{max-width:820px;margin:0 auto;padding:16px 16px 48px}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .card{background:var(--card);border-radius:var(--radius);box-shadow:0 8px 24px rgba(2,6,23,.06);padding:16px}
+    .muted{color:var(--muted)} .tiny{font-size:12px}
+    .btn{padding:8px 12px;border:1px solid #e5e7eb;border-radius:10px;background:#f1f5f9;color:#0f172a;text-decoration:none}
+    .pill{border-radius:999px;background:#eef2ff;color:#3730a3;padding:4px 10px;font-size:12px;font-weight:600}
+    .big{font-size:28px;font-weight:800;letter-spacing:.5px}
+    .timer{font-variant-numeric:tabular-nums}
+    .names{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+    .chip{padding:6px 10px;border-radius:999px;border:1px solid #e5e7eb;background:#fff}
+    .list{display:grid;gap:10px;margin-top:12px}
+    .rowitem{display:flex;align-items:center;gap:12px;justify-content:space-between;border:1px solid #eef2f7;border-radius:12px;padding:10px 12px;background:#fff}
+    .rowleft{display:flex;align-items:center;gap:10px}
+    .time{font-weight:700}
+    .delta{color:#475569;font-variant-numeric:tabular-nums}
+    .footer{margin-top:18px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="row" style="margin-bottom:12px">
+      <div>
+        <strong>Carney Arrival — Who’s Up Next</strong>
+        <div class="tiny muted">Groups identical times together. Live countdown to the next slot.</div>
+      </div>
+      <div class="row">
+        <a class="btn" href="/carney-arrival/">← Back</a>
+        <a class="btn" href="/carney-arrival/heatmap.html">Heatmap</a>
+      </div>
+    </div>
+
+    <!-- NEXT UP -->
+    <div id="nextCard" class="card">
+      <div class="row" style="margin-bottom:6px">
+        <div class="big">Next up</div>
+        <span id="nextWhen" class="pill">--</span>
+      </div>
+      <div class="row" style="gap:16px;flex-wrap:wrap">
+        <div>
+          <div class="muted tiny">Time remaining</div>
+          <div id="countdown" class="big timer">--:--:--</div>
+        </div>
+        <div>
+          <div class="muted tiny">Who</div>
+          <div id="nextNames" class="names"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUEUE -->
+    <div class="card" style="margin-top:12px">
+      <div class="row" style="margin-bottom:6px">
+        <strong>Queue</strong>
+        <span id="queueCount" class="pill">0 upcoming slots</span>
+      </div>
+      <div id="queueList" class="list" aria-live="polite"></div>
+    </div>
+
+    <div class="footer tiny muted">
+      Tip: keep this page open at the hospital; it updates itself every few seconds.
+    </div>
+  </div>
+
+  <!-- pull shared helpers + API -->
+  <script src="/carney-arrival/assets/core.js"></script>
+  <script>
+  // ------- Small local helpers -------
+  const $ = s => document.querySelector(s);
+
+  /** Group predictions by exact minute.
+   *  key = ISO truncated to minutes in local time */
+  function groupByMinute(predictions){
+    const groups = new Map();
+    predictions.forEach(p=>{
+      const d = new Date(p.predictedAt);
+      d.setSeconds(0,0);
+      const key = d.toISOString();
+      if(!groups.has(key)) groups.set(key, { when: new Date(d), people: [] });
+      groups.get(key).people.push(p);
+    });
+    return Array.from(groups.values())
+      .sort((a,b)=> a.when - b.when);
+  }
+
+  /** Format a delta (ms) as HH:MM:SS, clamped at 0 */
+  function hms(ms){
+    if(ms <= 0) return '00:00:00';
+    const s = Math.floor(ms/1000);
+    const hh = String(Math.floor(s/3600)).padStart(2,'0');
+    const mm = String(Math.floor((s%3600)/60)).padStart(2,'0');
+    const ss = String(s%60).padStart(2,'0');
+    return `${hh}:${mm}:${ss}`;
+  }
+
+  function fmtLocal(iso){
+    return new Date(iso).toLocaleString([], {weekday:'short', month:'short', day:'numeric', hour:'numeric', minute:'2-digit'});
+  }
+
+  // ------- Renderer -------
+  function render(state){
+    const all = state.predictions || [];
+
+    // only consider predictions within the configured window
+    const start = new Date(state.settings.windowStart);
+    const end   = new Date(state.settings.windowEnd);
+    const inWindow = all.filter(p=>{
+      const t = new Date(p.predictedAt);
+      return t >= start && t <= end;
+    });
+
+    const grouped = groupByMinute(inWindow);
+    const now = new Date();
+
+    // split into future + past relative to now
+    const future = grouped.filter(g => g.when > now);
+    const past   = grouped.filter(g => g.when <= now);
+
+    // NEXT UP
+    const next = future[0];
+    const nextCard = $('#nextCard');
+    const nextNames = $('#nextNames');
+    const nextWhen  = $('#nextWhen');
+    const countdown = $('#countdown');
+
+    nextNames.innerHTML = '';
+    if(next){
+      nextWhen.textContent = next.when.toLocaleString([], {weekday:'short', hour:'numeric', minute:'2-digit'});
+      next.people
+        .sort((a,b)=> a.name.localeCompare(b.name))
+        .forEach(p=>{
+          const chip = document.createElement('div');
+          chip.className = 'chip';
+          chip.textContent = p.name;
+          nextNames.appendChild(chip);
+        });
+
+      // live countdown to next.when
+      const tick = ()=>{
+        const ms = next.when - Date.now();
+        countdown.textContent = hms(ms);
+        if(ms > 0) requestAnimationFrame(tick);
+        else countdown.textContent = '00:00:00';
+      };
+      requestAnimationFrame(tick);
+    }else{
+      nextWhen.textContent = '—';
+      countdown.textContent = '—';
+      const none = document.createElement('div');
+      none.className = 'chip';
+      none.textContent = 'No future guesses';
+      nextNames.appendChild(none);
+    }
+
+    // QUEUE (everything after next; include “just passed” for context)
+    const queue = $('#queueList');
+    queue.innerHTML = '';
+    const upcoming = next ? future.slice(1) : future; // skip the one shown above
+    $('#queueCount').textContent = `${upcoming.length} upcoming slot${upcoming.length===1?'':'s'}`;
+
+    upcoming.forEach(g=>{
+      const row = document.createElement('div');
+      row.className = 'rowitem';
+
+      const left = document.createElement('div');
+      left.className = 'rowleft';
+      const time = document.createElement('div');
+      time.className = 'time';
+      time.textContent = g.when.toLocaleString([], {weekday:'short', hour:'numeric', minute:'2-digit'});
+      left.appendChild(time);
+
+      const names = document.createElement('div');
+      names.className = 'names';
+      g.people
+        .sort((a,b)=> a.name.localeCompare(b.name))
+        .forEach(p=>{
+          const chip = document.createElement('div');
+          chip.className = 'chip';
+          chip.textContent = p.name;
+          names.appendChild(chip);
+        });
+
+      const right = document.createElement('div');
+      const ms = g.when - now;
+      const delta = document.createElement('div');
+      delta.className = 'delta';
+      delta.textContent = ms > 0 ? `in ${Math.ceil(ms/60000)} min` : `${Math.ceil(-ms/60000)} min ago`;
+
+      row.appendChild(left);
+      row.appendChild(names);
+      row.appendChild(delta);
+      queue.appendChild(row);
+    });
+
+    // Optional: show the last few past slots (most recent first) under the queue
+    if(past.length){
+      const recent = past.slice(-3).reverse(); // last 3 that just passed
+      recent.forEach(g=>{
+        const row = document.createElement('div');
+        row.className = 'rowitem';
+        row.style.opacity = .7;
+
+        const left = document.createElement('div');
+        left.className = 'rowleft';
+        const time = document.createElement('div');
+        time.className = 'time';
+        time.textContent = g.when.toLocaleString([], {weekday:'short', hour:'numeric', minute:'2-digit'});
+        left.appendChild(time);
+
+        const names = document.createElement('div');
+        names.className = 'names';
+        g.people.forEach(p=>{
+          const chip = document.createElement('div');
+          chip.className = 'chip';
+          chip.textContent = p.name;
+          names.appendChild(chip);
+        });
+
+        const delta = document.createElement('div');
+        delta.className = 'delta';
+        delta.textContent = `${Math.ceil((now - g.when)/60000)} min ago`;
+
+        row.appendChild(left);
+        row.appendChild(names);
+        row.appendChild(delta);
+        $('#queueList').appendChild(row);
+      });
+    }
+  }
+
+  // ------- Boot + refresh -------
+  async function boot(){
+    await CAP.loadAll();
+    render(CAP.state);
+
+    // light auto-refresh: pull fresh data every 15s; soft render every 5s for countdown smoothness
+    setInterval(async ()=>{
+      try{ await CAP.loadAll(); render(CAP.state); }catch(_){}
+    }, 15000);
+
+    setInterval(()=> render(CAP.state), 5000);
+  }
+
+  boot().catch(e=> alert('Failed to load queue. ' + e.message));
+  </script>
+</body>
+</html>
+
