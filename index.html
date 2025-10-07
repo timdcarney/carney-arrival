@@ -419,31 +419,34 @@ $('#predictForm').addEventListener('submit', async e=>{
   }
 });
 
-// Share (exact 3-line format: title, tagline, URL)
+// Share (single clean 3-line block)
 $('#shareBtn').addEventListener('click', async ()=>{
-  const url = 'https://timdcarney.github.io/carney-arrival/'; // hardcode to avoid odd base URLs
+  const url = 'https://timdcarney.github.io/carney-arrival/';
   const text =
-`${CONFIG.APP_NAME}
+`Carney Arrival Predictor
 👶💞 Come guess Baby Carney’s arrival time!
 ${url}`;
 
-  // Use Web Share API if available
+  // Prefer Web Share API (mobile-friendly)
   if (navigator.share) {
     try {
-      await navigator.share({ title: CONFIG.APP_NAME, text }); // no url field; text already includes it
+      // Only pass text — omit title to prevent duplication
+      await navigator.share({ text });
       return;
-    } catch (_) { /* fall through to clipboard */ }
+    } catch (_) {
+      // fall through to clipboard
+    }
   }
 
-  // Fallback: copy the exact block to clipboard
+  // Fallback: copy full message to clipboard
   try {
     await navigator.clipboard.writeText(text);
     alert('Invite copied!');
   } catch {
-    // Last resort: show the text so the user can copy
     alert(text);
   }
 });
+
 
 
 // Admin toggles
