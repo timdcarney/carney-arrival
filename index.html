@@ -1,55 +1,53 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Carney Arrival Predictor</title>
-<meta name="theme-color" content="#f6f3ff">
-<style>
-  :root{
-    --bg:#f8fafc; --card:#ffffff; --ink:#0f172a; --muted:#64748b;
-    --accent:#a78bfa; --accent-2:#f0abfc; --good:#22c55e; --warn:#f59e0b; --bad:#ef4444;
-    --radius:18px;
-  }
-  *{box-sizing:border-box}
-  body{margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif; background:var(--bg); color:var(--ink);}
-  .wrap{max-width:720px; margin:0 auto; padding:16px 16px 96px}
-  header{display:flex; align-items:center; gap:12px; padding:12px 0}
-  .logo{font-size:28px}
-  .title{font-weight:800; font-size:20px; line-height:1.1}
-  .card{background:var(--card); border-radius:var(--radius); box-shadow:0 8px 24px rgba(2,6,23,.06); padding:14px}
-  .grid{display:grid; gap:12px}
-  .two{grid-template-columns:repeat(2,1fr)}
-  @media (min-width:640px){ .two{grid-template-columns:repeat(2,1fr)} }
-  label{display:block; font-size:13px; color:var(--muted); margin-bottom:6px}
-  input, select, button{width:100%; padding:12px 14px; border:1px solid #e5e7eb; border-radius:12px; font-size:16px; background:white}
-  input:focus, select:focus, button:focus{outline:3px solid #e9d5ff; border-color:#d8b4fe}
-  button{cursor:pointer; border:none; background:linear-gradient(180deg, var(--accent), var(--accent-2)); color:white; font-weight:700}
-  button.secondary{background:#f1f5f9; color:#0f172a; border:1px solid #e5e7eb}
-  .muted{color:var(--muted)}
-  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-  .status{padding:10px 12px; border-radius:12px; background:#f1f5f9}
-  .status.open{background:#ecfeff}
-  .status.closed{background:#fff7ed}
-  .status.winner{background:#ecffec}
-  table{width:100%; border-collapse:separate; border-spacing:0 8px}
-  th{font-size:12px; color:var(--muted); text-align:left; padding:0 8px}
-  td{background:var(--card); padding:12px 8px; border-top:1px solid #eef2f7; border-bottom:1px solid #eef2f7}
-  tr td:first-child{border-left:1px solid #eef2f7; border-radius:12px 0 0 12px}
-  tr td:last-child{border-right:1px solid #eef2f7; border-radius:0 12px 12px 0}
-  .badge{display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; background:#f1f5f9; font-size:12px}
-  footer{position:fixed; inset:auto 0 0 0; background:rgba(255,255,255,.9); backdrop-filter:saturate(1.2) blur(6px); padding:10px 14px; border-top:1px solid #e5e7eb; display:flex; justify-content:center}
-  .tiny{font-size:12px}
-  .countdown{font-variant-numeric:tabular-nums; font-weight:800}
-  .pill{border-radius:999px; padding:4px 10px; font-size:12px; background:#eef2ff; color:#3730a3}
-  .admin-toggle{background:#fee2e2; color:#991b1b; border:1px solid #fecaca}
-  .winner{background:#f0fdf4 !important}
-  .medal{font-size:18px}
-  .hidden{display:none !important}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Carney Arrival Predictor</title>
+  <meta name="theme-color" content="#f6f3ff">
+  <style>
+    /* ============ MOBILE-FIRST, SOFT PASTELS ============ */
+    :root{
+      --bg:#f8fafc; --card:#ffffff; --ink:#0f172a; --muted:#64748b;
+      --accent:#a78bfa; --accent-2:#f0abfc;
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif; background:var(--bg); color:var(--ink);}
+    .wrap{max-width:720px; margin:0 auto; padding:16px 16px 96px}
+    header{display:flex; align-items:center; gap:12px; padding:12px 0}
+    .logo{font-size:28px}
+    .title{font-weight:800; font-size:20px; line-height:1.1}
+    .card{background:var(--card); border-radius:var(--radius); box-shadow:0 8px 24px rgba(2,6,23,.06); padding:14px}
+    .grid{display:grid; gap:12px}
+    .two{grid-template-columns:1fr}
+    @media (min-width:640px){ .two{grid-template-columns:repeat(2,1fr)} }
+    label{display:block; font-size:14px; color:var(--muted); margin-bottom:6px}
+    input, select, button{width:100%; padding:14px 14px; border:1px solid #e5e7eb; border-radius:12px; font-size:16px; background:white}
+    input:focus, select:focus, button:focus{outline:3px solid #e9d5ff; border-color:#d8b4fe}
+    button{cursor:pointer; border:none; background:linear-gradient(180deg, var(--accent), var(--accent-2)); color:white; font-weight:700}
+    button.secondary{background:#f1f5f9; color:#0f172a; border:1px solid #e5e7eb}
+    .muted{color:var(--muted)}
+    .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .status{padding:10px 12px; border-radius:12px; background:#f1f5f9}
+    .status.open{background:#ecfeff}
+    .status.closed{background:#fff7ed}
+    .status.winner{background:#ecffec}
+    table{width:100%; border-collapse:separate; border-spacing:0 8px}
+    th{font-size:12px; color:var(--muted); text-align:left; padding:0 8px}
+    td{background:var(--card); padding:12px 8px; border-top:1px solid #eef2f7; border-bottom:1px solid #eef2f7}
+    tr td:first-child{border-left:1px solid #eef2f7; border-radius:12px 0 0 12px}
+    tr td:last-child{border-right:1px solid #eef2f7; border-radius:0 12px 12px 0}
+    .badge{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:#eef2ff; color:#3730a3; font-size:12px; font-weight:600}
+    .tiny{font-size:12px}
+    .winner{background:#f0fdf4 !important}
+    .medal{font-size:18px}
+    footer{position:fixed; inset:auto 0 0 0; background:rgba(255,255,255,.95); backdrop-filter:saturate(1.2) blur(6px); padding:10px 14px; border-top:1px solid #e5e7eb; display:flex; justify-content:center}
+  </style>
 </head>
 <body>
   <div class="wrap">
+    <!-- Header -->
     <header>
       <div class="logo">👶⏰💞</div>
       <div>
@@ -59,66 +57,57 @@
       <div style="margin-left:auto"><button id="shareBtn" class="secondary">Share</button></div>
     </header>
 
-    <!-- Status + submission deadline countdown -->
+    <!-- Live status + simple countdown to EOD today -->
     <div id="statusBanner" class="status card">Loading…</div>
     <div class="card row" id="countdownBlock">
-      <div class="badge">⏳ Submit by <strong>EOD today</strong> — <span id="countdown" class="countdown">--:--:--</span></div>
+      <span class="badge">⏳ Submit by EOD today — <strong id="countdown">--:--:--</strong></span>
       <span id="windowRange" class="muted tiny"></span>
     </div>
 
-    <!-- Submission Form (no phone) -->
+    <!-- Submission Form (NO PHONE, NO CONFIDENCE) -->
     <form id="predictForm" class="card grid" aria-label="Submit a prediction">
       <div class="grid two">
         <div>
           <label for="name">Your Name</label>
           <input id="name" name="name" required placeholder="Pat, Granny, etc." autocomplete="name" />
         </div>
-        <div>
-          <label for="confidence">Confidence (1–5)</label>
-          <select id="confidence" required>
-            <option value="5">5 – Very confident</option>
-            <option value="4">4</option>
-            <option value="3" selected>3 – Middle</option>
-            <option value="2">2</option>
-            <option value="1">1 – Just for fun</option>
-          </select>
-        </div>
       </div>
 
-      <!-- New picker: Day (next 7) → Hour → Minute(00/15/30/45) -->
-      <div class="grid two">
+      <!-- Simple, clear picker:
+           Day (next 7) • Hour (1–12) • AM/PM • Minute (00/15/30/45)
+           This is crystal clear for mobile users. -->
+      <div class="grid" style="grid-template-columns:1fr 1fr 1fr 1fr; gap:12px">
         <div>
           <label for="daySel">Day (next 7)</label>
           <select id="daySel" required></select>
         </div>
-        <div class="grid" style="grid-template-columns:1fr 1fr; gap:12px">
-          <div>
-            <label for="hourSel">Hour</label>
-            <select id="hourSel" required></select>
-          </div>
-          <div>
-            <label for="minSel">Minute</label>
-            <select id="minSel" required>
-              <option>00</option><option>15</option><option>30</option><option>45</option>
-            </select>
-          </div>
+        <div>
+          <label for="hourSel">Hour</label>
+          <select id="hourSel" required></select>
+        </div>
+        <div>
+          <label for="ampmSel">AM/PM</label>
+          <select id="ampmSel" required>
+            <option>AM</option><option>PM</option>
+          </select>
+        </div>
+        <div>
+          <label for="minSel">Minute</label>
+          <select id="minSel" required>
+            <option>00</option><option>15</option><option>30</option><option>45</option>
+          </select>
         </div>
       </div>
 
       <button id="submitBtn">Submit Prediction</button>
-      <div class="tiny muted">One guess per device during this window. Closest <em>without going over</em> wins (“Price Is Right” 🎯).</div>
+      <div class="tiny muted">One guess per device during this window. “Price Is Right” scoring: closest <em>without going over</em> wins.</div>
     </form>
 
     <!-- Leaderboard -->
     <div class="card grid" id="boardCard">
       <div class="row" style="justify-content:space-between">
-        <div class="row">
-          <strong>Leaderboard</strong>
-          <span id="entriesCount" class="pill">0 entries</span>
-        </div>
-        <div class="row">
-          <button id="sortModeBtn" class="secondary tiny" style="padding:8px 10px">Toggle Sort</button>
-        </div>
+        <div class="row"><strong>Leaderboard</strong> <span id="entriesCount" class="badge">0 entries</span></div>
+        <div class="row"><button id="sortModeBtn" class="secondary tiny" style="padding:8px 10px">Toggle Sort</button></div>
       </div>
       <div class="grid">
         <table aria-label="Predictions leaderboard">
@@ -126,7 +115,6 @@
             <tr>
               <th>Name</th>
               <th>Predicted</th>
-              <th>Conf.</th>
               <th>Submitted</th>
               <th>Δ (if set)</th>
             </tr>
@@ -136,30 +124,28 @@
       </div>
     </div>
 
-    <!-- Admin -->
+    <!-- Admin (simple) -->
     <div class="card grid" id="adminCard">
       <div class="row" style="justify-content:space-between">
         <strong>Admin</strong>
-        <button id="adminToggle" class="admin-toggle tiny" style="padding:8px 10px">Admin Mode</button>
+        <button id="adminToggle" class="secondary tiny" style="padding:8px 10px">Admin Mode</button>
       </div>
-      <div id="adminPanel" class="grid hidden">
+      <div id="adminPanel" class="grid" style="display:none">
         <div class="grid two">
           <div>
             <label>Passphrase</label>
             <input id="adminPass" type="password" placeholder="passphrase" />
           </div>
-          <div>
-            <label>&nbsp;</label>
-            <button id="unlockBtn" class="secondary">Unlock</button>
-          </div>
+          <div style="display:flex;align-items:end"><button id="unlockBtn" class="secondary">Unlock</button></div>
         </div>
         <div class="grid two">
           <div>
             <label>Window Start (local)</label>
             <input id="windowStart" type="datetime-local" />
+            <div class="tiny muted">End auto-sets to +7 days; submissions deadline = EOD today.</div>
           </div>
           <div>
-            <label>Window End (auto 7 days)</label>
+            <label>Window End</label>
             <input id="windowEnd" type="datetime-local" disabled />
           </div>
         </div>
@@ -172,14 +158,11 @@
             <label>Actual Arrival (local)</label>
             <input id="actualArrival" type="datetime-local" />
           </div>
-          <div>
-            <label>&nbsp;</label>
-            <button id="setActualBtn">Set Actual & Rank</button>
-          </div>
+          <div style="display:flex;align-items:end"><button id="setActualBtn">Set Actual & Rank</button></div>
         </div>
         <div class="row">
           <button id="exportBtn" class="secondary">Export CSV</button>
-          <span id="winnerBadge" class="badge hidden">Winner: <span id="winnerText"></span></span>
+          <span id="winnerBadge" class="badge" style="display:none">Winner: <span id="winnerText"></span></span>
         </div>
       </div>
     </div>
@@ -188,27 +171,63 @@
   <footer><div class="tiny">Made with love while waiting for Baby Carney 💕</div></footer>
 
 <script>
-/* ===== CONFIG ===== */
+/* =========================
+ * CONFIG — EDIT THIS ONLY
+ * ========================= */
 const CONFIG = {
-  API_URL: 'YOUR_APPS_SCRIPT_EXEC_URL_HERE', // <-- paste your /exec URL
+  API_URL: 'YOUR_APPS_SCRIPT_EXEC_URL_HERE',  // <-- paste your /exec URL
   APP_NAME: 'Carney Arrival Predictor',
 };
 
-/* ===== Tiny helpers ===== */
+/* =========================
+ * TINY HELPERS
+ * ========================= */
 const $ = s => document.querySelector(s);
 const fmt = {
-  localDateTimeInputValue: iso => { if(!iso) return ''; const d=new Date(iso),p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; },
-  toLocal: iso => new Date(iso).toLocaleString([], {hour:'2-digit',minute:'2-digit',month:'short',day:'numeric'}),
-  deltaLabel: (a,b)=>{ const ms=Math.abs(new Date(a)-new Date(b)), m=Math.floor(ms/60000), h=Math.floor(m/60), mm=m%60; return (h?`${h}h `:'')+`${mm}m`; },
-  nowIso: () => new Date().toISOString(),
+  // format ISO to "MMM d, h:mm a" without seconds
+  toLocal: iso => new Date(iso).toLocaleString([], {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'}),
+  // countdown helper (HH:MM:SS)
+  simpleHMS(ms){
+    if (ms<=0) return '00:00:00';
+    const s = Math.floor(ms/1000);
+    const hh = String(Math.floor(s/3600)).padStart(2,'0');
+    const mm = String(Math.floor((s%3600)/60)).padStart(2,'0');
+    const ss = String(s%60).padStart(2,'0');
+    return `${hh}:${mm}:${ss}`;
+  },
+  localDateTimeInputValue(iso){
+    if(!iso) return '';
+    const d = new Date(iso), p=n=>String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+  },
+  deltaLabel(a,b){
+    const ms = Math.abs(new Date(a)-new Date(b));
+    const m = Math.floor(ms/60000), h=Math.floor(m/60), mm=m%60;
+    return (h?`${h}h `:'')+`${mm}m`;
+  }
 };
 
-/* ===== CORS-safe storage client ===== */
+// per-device throttle + id
+const CLIENT = (() => {
+  const idKey='cap_client_id', cdKey='cap_cooldown';
+  let id = localStorage.getItem(idKey);
+  if(!id){ id = crypto.randomUUID(); localStorage.setItem(idKey,id); }
+  return {
+    id,
+    canPost(){ const last=Number(localStorage.getItem(cdKey)||0); return Date.now()-last>20_000; },
+    notePost(){ localStorage.setItem(cdKey,String(Date.now())); }
+  };
+})();
+
+/* =========================
+ * CORS-SAFE STORAGE CLIENT
+ * (text/plain to avoid preflight)
+ * ========================= */
 const storage = {
   async api(action, payload={}){
     const res = await fetch(CONFIG.API_URL, {
       method:'POST',
-      headers:{'Content-Type':'text/plain;charset=utf-8'}, // avoid preflight
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify({action, payload})
     });
     if(!res.ok) throw new Error(`API ${res.status}`);
@@ -225,155 +244,267 @@ const storage = {
   exportCSV(adminPass){ return this.api('exportCSV', {adminPass}); },
 };
 
-/* ===== State ===== */
-const state = { settings:null, predictions:[], sortMode:'submittedAt', adminUnlocked:false, winner:null };
+/* =========================
+ * STATE
+ * ========================= */
+const state = {
+  settings:null,       // { windowStart, windowEnd, submissionsOpen, submissionsDeadline, actualArrivalAt }
+  predictions:[],      // [{ id,name,predictedAt,submittedAt,clientId }]
+  sortMode:'submittedAt', // 'submittedAt' | 'predictedAt' (pre-result)
+  adminUnlocked:false,
+  winner:null
+};
 
-/* ===== UI pieces ===== */
+/* =========================
+ * RENDER: STATUS + COUNTDOWN
+ * ========================= */
 function renderStatus(){
   const s = state.settings, el = $('#statusBanner');
   if(!s){ el.textContent='Loading…'; return; }
-  const now=new Date(), start=new Date(s.windowStart), end=new Date(s.windowEnd), within = now>=start && now<=end;
   const subsOpen = s.submissionsOpen && (new Date() < new Date(s.submissionsDeadline));
-  if(s.actualArrivalAt){ el.className="status card winner"; el.textContent = `We have a winner! 🎉 Baby arrived ${fmt.toLocal(s.actualArrivalAt)}.`; }
-  else if(subsOpen && within){ el.className="status card open"; el.textContent = `Still baking 👶 — Predictions are OPEN (submit by EOD today).`; }
-  else{ el.className="status card closed"; el.textContent = `Labor in progress 🚀 (predictions closed)`; }
+  const withinWindow = (new Date() >= new Date(s.windowStart)) && (new Date() <= new Date(s.windowEnd));
+
+  if(s.actualArrivalAt){
+    el.className="status card winner";
+    el.textContent = `We have a winner! 🎉 Baby arrived ${fmt.toLocal(s.actualArrivalAt)}.`;
+  }else if(subsOpen && withinWindow){
+    el.className="status card open";
+    el.textContent = `Still baking 👶 — Predictions are OPEN (submit by EOD today).`;
+  }else{
+    el.className="status card closed";
+    el.textContent = `Labor in progress 🚀 (predictions closed)`;
+  }
 }
 
 function renderCountdown(){
-  const s=state.settings, block=$('#countdownBlock'); if(!s){ block.classList.add('hidden'); return; }
-  $('#windowRange').textContent = `Prediction window: ${fmt.toLocal(s.windowStart)} → ${fmt.toLocal(s.windowEnd)} (7 days)`;
-  const deadline = new Date(s.submissionsDeadline).getTime();
-  const cd = $('#countdown');
-  const tick=()=>{ const ms = deadline - Date.now();
-    if(ms<=0){ cd.textContent='00:00:00'; $('#submitBtn').disabled=true; return; }
-    const sec=Math.floor(ms/1000)%60, min=Math.floor(ms/60000)%60, hr=Math.floor(ms/3600000);
-    cd.textContent = `${String(hr).padStart(2,'0')}:${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-    requestAnimationFrame(tick);
+  const s = state.settings, cd = $('#countdown'), range = $('#windowRange');
+  if(!s) return;
+  range.textContent = `Window: ${fmt.toLocal(s.windowStart)} → ${fmt.toLocal(s.windowEnd)} (7 days)`;
+  const end = new Date(s.submissionsDeadline).getTime();
+  const tick = () => {
+    const ms = end - Date.now();
+    cd.textContent = fmt.simpleHMS(ms);
+    if(ms>0) requestAnimationFrame(tick);
+    else $('#submitBtn').disabled = true;
   };
   requestAnimationFrame(tick);
 }
 
-/* Price Is Right ranking: closest <= actual wins; over-shots are last */
+/* =========================
+ * RENDER: BOARD + RANKING
+ * - Price Is Right: closest <= actual wins
+ * - Overs are pushed to the bottom
+ * - Tie-breaker: earlier submission
+ * ========================= */
 function rankAndSort(){
-  const s=state.settings; const arr=[...state.predictions];
+  const s = state.settings;
+  const arr = [...state.predictions];
+
   if(s.actualArrivalAt){
     const actual = new Date(s.actualArrivalAt).getTime();
     arr.sort((a,b)=>{
-      const ap = new Date(a.predictedAt).getTime(), bp = new Date(b.predictedAt).getTime();
-      const aOver = ap>actual, bOver = bp>actual;
-      if(aOver!==bOver) return aOver? 1 : -1; // overs go to bottom
+      const ap = new Date(a.predictedAt).getTime();
+      const bp = new Date(b.predictedAt).getTime();
+      const aOver = ap > actual, bOver = bp > actual;
+      if(aOver !== bOver) return aOver ? 1 : -1;      // send over-bids to bottom
       const da = Math.abs(actual - ap), db = Math.abs(actual - bp);
-      if(da!==db) return da-db;
-      if(b.confidence!==a.confidence) return b.confidence-a.confidence;
-      return new Date(a.submittedAt)-new Date(b.submittedAt);
+      if(da !== db) return da - db;                   // closer wins among non-overs
+      return new Date(a.submittedAt) - new Date(b.submittedAt); // earlier breaks tie
     });
+    // winner = first non-over, if any
     state.winner = arr.find(p => new Date(p.predictedAt).getTime() <= actual) || null;
     return arr;
   }
-  if(state.sortMode==='predictedAt'){ arr.sort((a,b)=> new Date(a.predictedAt)-new Date(b.predictedAt)); return arr; }
-  arr.sort((a,b)=> new Date(b.submittedAt)-new Date(a.submittedAt)); return arr;
+
+  // Before actual is set, allow toggling sort
+  if(state.sortMode==='predictedAt'){
+    arr.sort((a,b)=> new Date(a.predictedAt)-new Date(b.predictedAt));
+  }else{
+    arr.sort((a,b)=> new Date(b.submittedAt)-new Date(a.submittedAt));
+  }
+  return arr;
 }
 
 function renderBoard(){
-  const s=state.settings, tbody=$('#tbody'); tbody.innerHTML=''; const rows=rankAndSort();
+  const s = state.settings, tbody = $('#tbody');
+  tbody.innerHTML='';
+  const rows = rankAndSort();
   $('#entriesCount').textContent = `${rows.length} entries`;
-  rows.forEach((p,idx)=>{
-    const tr=document.createElement('tr');
+
+  rows.forEach(p=>{
     const isWinner = s.actualArrivalAt && state.winner && p.id===state.winner.id;
+    const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${isWinner?'🥇 ':''}${escapeHtml(p.name)}</td>
-      <td>${new Date(p.predictedAt).toLocaleString([], {hour:'2-digit',minute:'2-digit',month:'short',day:'numeric'})}</td>
-      <td>${p.confidence}</td>
-      <td class="muted">${new Date(p.submittedAt).toLocaleString([], {hour:'2-digit',minute:'2-digit',month:'short',day:'numeric'})}</td>
+      <td>${fmt.toLocal(p.predictedAt)}</td>
+      <td class="muted">${fmt.toLocal(p.submittedAt)}</td>
       <td class="muted">${s.actualArrivalAt ? fmt.deltaLabel(p.predictedAt, s.actualArrivalAt) : ''}</td>`;
     if(isWinner) tr.classList.add('winner');
     tbody.appendChild(tr);
   });
 }
-
 function escapeHtml(s){return (s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 
-/* ===== New picker wiring ===== */
-function fillDayHourMinute(){
-  const dSel = $('#daySel'), hSel=$('#hourSel'), mSel=$('#minSel');
+/* =========================
+ * PICKER: DAY (next 7), HOUR(1–12), AM/PM, MINUTES(00/15/30/45)
+ * ========================= */
+function fillPicker(){
+  const dSel = $('#daySel'), hSel=$('#hourSel');
   dSel.innerHTML=''; hSel.innerHTML='';
+
+  // Days: today + next 6 days
   const now = new Date(); now.setSeconds(0,0);
   for(let i=0;i<7;i++){
     const d = new Date(now); d.setDate(now.getDate()+i);
     const label = d.toLocaleDateString([], {weekday:'short', month:'short', day:'numeric'});
     dSel.insertAdjacentHTML('beforeend', `<option value="${i}">${label}</option>`);
   }
-  for(let h=0;h<24;h++){ const hh=String(h).padStart(2,'0'); hSel.insertAdjacentHTML('beforeend', `<option value="${hh}">${hh}</option>`); }
+
+  // Hours: 1..12 (12-hour clock is clearer with AM/PM)
+  for(let h=1; h<=12; h++){
+    const hh = String(h);
+    hSel.insertAdjacentHTML('beforeend', `<option value="${hh}">${hh}</option>`);
+  }
 }
 
-/* ===== Events ===== */
-$('#sortModeBtn').addEventListener('click', e=>{ e.preventDefault(); if(state.settings.actualArrivalAt) return; state.sortMode = state.sortMode==='submittedAt' ? 'predictedAt' : 'submittedAt'; renderBoard(); });
+/* Convert 12h + AM/PM to 24h */
+function to24Hour(h12, ampm){
+  let h = Number(h12);
+  if(ampm==='AM'){ if(h===12) h=0; }
+  else { if(h!==12) h+=12; }
+  return h; // 0..23
+}
+
+/* =========================
+ * EVENTS
+ * ========================= */
+$('#sortModeBtn').addEventListener('click', e=>{
+  e.preventDefault();
+  if(state.settings.actualArrivalAt) return;
+  state.sortMode = state.sortMode==='submittedAt' ? 'predictedAt' : 'submittedAt';
+  renderBoard();
+});
 
 $('#predictForm').addEventListener('submit', async e=>{
   e.preventDefault();
-  const s=state.settings;
-  if(!(s.submissionsOpen && (new Date() < new Date(s.submissionsDeadline)))){ alert('Submissions are closed.'); return; }
+  const s = state.settings;
+  // Hard gate: open + before EOD deadline
+  if(!(s.submissionsOpen && (new Date() < new Date(s.submissionsDeadline)))){
+    alert('Submissions are closed.'); return;
+  }
+  // Build predicted datetime from picker (LOCAL → ISO)
   const name = $('#name').value.trim();
-  const confidence = parseInt($('#confidence').value,10);
   const dayOffset = parseInt($('#daySel').value,10);
-  const hh = $('#hourSel').value;
+  const h12 = $('#hourSel').value;
+  const ampm = $('#ampmSel').value;
   const mm = $('#minSel').value;
-  if(!name) return alert('Please add your name.');
 
-  // Build predicted datetime from dayOffset + hh:mm (local)
+  if(!name){ alert('Please enter your name.'); return; }
+
   const base = new Date(); base.setHours(0,0,0,0);
   base.setDate(base.getDate()+dayOffset);
-  const predictedLocal = new Date(base); predictedLocal.setHours(Number(hh), Number(mm), 0, 0);
+  const hour = to24Hour(h12, ampm);
+  const predictedLocal = new Date(base); predictedLocal.setHours(hour, Number(mm), 0, 0);
   const predictedIso = predictedLocal.toISOString();
 
-  // Validate in window
+  // Ensure inside [windowStart, windowEnd]
   if(new Date(predictedIso) < new Date(s.windowStart) || new Date(predictedIso) > new Date(s.windowEnd)){
     alert('Pick a time within the 7-day window.'); return;
   }
 
-  $('#submitBtn').disabled=true; $('#submitBtn').textContent='Submitting…';
+  // Throttle
+  if(!CLIENT.canPost()){ alert('Easy tiger — try again in a few seconds.'); return; }
+
+  // Submit
+  $('#submitBtn').disabled = true; $('#submitBtn').textContent='Submitting…';
   try{
-    await storage.savePrediction({ name, predictedAt:predictedIso, confidence, clientId: CLIENT.id, submittedAt: fmt.nowIso() });
-    fmt.nowIso(); // noop to keep tree-shakers away
+    await storage.savePrediction({ name, predictedAt:predictedIso, submittedAt: new Date().toISOString(), clientId: CLIENT.id });
+    CLIENT.notePost();
     $('#predictForm').reset();
-    fillDayHourMinute(); // repopulate selects
+    fillPicker();
     await refresh();
-  }catch(err){ alert(err.message||'Failed to submit.'); }
-  finally{ $('#submitBtn').disabled=false; $('#submitBtn').textContent='Submit Prediction'; }
+  }catch(err){
+    alert(err.message||'Failed to submit.');
+  }finally{
+    $('#submitBtn').disabled = false; $('#submitBtn').textContent='Submit Prediction';
+  }
 });
 
 $('#shareBtn').addEventListener('click', async ()=>{
   const url=location.href, msg=`👶💞 Come guess Baby Carney’s arrival time!\n\nMake your pick here: ${url}`;
   if(navigator.share){ try{ await navigator.share({title:CONFIG.APP_NAME, text:msg, url}); }catch{} }
-  else{ await navigator.clipboard.writeText(msg); alert('Invite copied!'); }
+  else { await navigator.clipboard.writeText(msg); alert('Invite copied!'); }
 });
 
-// Admin
-$('#adminToggle').addEventListener('click', ()=>$('#adminPanel').classList.toggle('hidden'));
+// Admin toggles
+$('#adminToggle').addEventListener('click', ()=>{
+  const p = $('#adminPanel');
+  p.style.display = (p.style.display==='none'||!p.style.display) ? 'grid' : 'none';
+});
 $('#unlockBtn').addEventListener('click', ()=>{ state.adminUnlocked = !!$('#adminPass').value; alert(state.adminUnlocked?'Admin unlocked':'Enter passphrase'); });
-$('#windowStart').addEventListener('change', ()=>{ const start=new Date($('#windowStart').value); const end=new Date(start.getTime()+7*24*3600*1000); $('#windowEnd').value=fmt.localDateTimeInputValue(end.toISOString()); });
+
+$('#windowStart').addEventListener('change', ()=>{
+  // Show computed end (+7 days) in disabled box
+  const start = new Date($('#windowStart').value);
+  const end = new Date(start.getTime()+7*24*3600*1000);
+  $('#windowEnd').value = fmt.localDateTimeInputValue(end.toISOString());
+});
+
 $('#saveWindowBtn').addEventListener('click', async ()=>{
   if(!state.adminUnlocked) return alert('Unlock admin first.');
-  const v=$('#windowStart').value; if(!v) return alert('Set a start datetime.');
-  try{ await storage.setWindow(new Date(v).toISOString(), $('#adminPass').value); await refresh(); alert('Window saved. (End = +7 days; deadline = EOD today)'); }catch(e){ alert(e.message); }
+  const v = $('#windowStart').value; if(!v) return alert('Pick a start datetime.');
+  try{
+    await storage.setWindow(new Date(v).toISOString(), $('#adminPass').value);
+    await refresh();
+    alert('Window saved (+7 days). Submissions deadline = EOD today.');
+  }catch(e){ alert(e.message); }
 });
-$('#toggleSubBtn').addEventListener('click', async ()=>{ if(!state.adminUnlocked) return alert('Unlock admin first.'); try{ await storage.toggleSubmissions($('#adminPass').value); await refresh(); }catch(e){ alert(e.message); }});
-$('#setActualBtn').addEventListener('click', async ()=>{ if(!state.adminUnlocked) return alert('Unlock admin first.'); const v=$('#actualArrival').value; if(!v) return alert('Pick actual arrival datetime.'); try{ await storage.setActualArrival(new Date(v).toISOString(), $('#adminPass').value); await refresh(); }catch(e){ alert(e.message); }});
-$('#exportBtn').addEventListener('click', async ()=>{ if(!state.adminUnlocked) return alert('Unlock admin first.'); try{ const {csv}=await storage.exportCSV($('#adminPass').value); const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='carney-arrival-predictions.csv'; a.click(); }catch(e){ alert(e.message); }});
 
-/* throttle per device */
-const CLIENT = (()=>{ const idKey='cap_client_id', cdKey='cap_cooldown'; let id=localStorage.getItem(idKey); if(!id){ id=crypto.randomUUID(); localStorage.setItem(idKey,id); } return { id, canPost(){ const last=Number(localStorage.getItem(cdKey)||0); return Date.now()-last>20_000; }, notePost(){ localStorage.setItem(cdKey,String(Date.now())); } };})();
+$('#toggleSubBtn').addEventListener('click', async ()=>{
+  if(!state.adminUnlocked) return alert('Unlock admin first.');
+  try{ await storage.toggleSubmissions($('#adminPass').value); await refresh(); }
+  catch(e){ alert(e.message); }
+});
 
-/* ===== Load ===== */
+$('#setActualBtn').addEventListener('click', async ()=>{
+  if(!state.adminUnlocked) return alert('Unlock admin first.');
+  const v = $('#actualArrival').value; if(!v) return alert('Pick the actual arrival time.');
+  try{ await storage.setActualArrival(new Date(v).toISOString(), $('#adminPass').value); await refresh(); }
+  catch(e){ alert(e.message); }
+});
+
+$('#exportBtn').addEventListener('click', async ()=>{
+  if(!state.adminUnlocked) return alert('Unlock admin first.');
+  try{
+    const {csv} = await storage.exportCSV($('#adminPass').value);
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'carney-arrival-predictions.csv'; a.click();
+  }catch(e){ alert(e.message); }
+});
+
+/* =========================
+ * LOAD/REFRESH
+ * ========================= */
 async function refresh(){
-  const [settingsRes, listRes] = await Promise.all([storage.getSettings(), storage.listPredictions()]);
-  state.settings=settingsRes.settings; state.predictions=listRes.predictions;
+  const [s, l] = await Promise.all([storage.getSettings(), storage.listPredictions()]);
+  state.settings = s.settings;
+  state.predictions = l.predictions;
   $('#windowStart').value = fmt.localDateTimeInputValue(state.settings.windowStart);
   $('#windowEnd').value = fmt.localDateTimeInputValue(state.settings.windowEnd);
   $('#actualArrival').value = fmt.localDateTimeInputValue(state.settings.actualArrivalAt);
-  renderStatus(); renderCountdown(); renderBoard(); fillDayHourMinute();
+  renderStatus(); renderCountdown(); renderBoard(); fillPicker();
+
+  // Winner badge (admin)
+  if(state.settings.actualArrivalAt && state.winner){
+    $('#winnerBadge').style.display='inline-flex';
+    $('#winnerText').textContent = `${state.winner.name} (${fmt.deltaLabel(state.winner.predictedAt, state.settings.actualArrivalAt)})`;
+  }else{
+    $('#winnerBadge').style.display='none';
+  }
 }
 refresh();
 </script>
 </body>
 </html>
+
