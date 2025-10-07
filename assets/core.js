@@ -194,5 +194,4 @@ CAP.renderHeatmapInto = (mountSel)=>{
   mount.appendChild(legend);
 };
 
-};
 
