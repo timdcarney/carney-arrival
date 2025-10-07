@@ -46,6 +46,8 @@
   .winner{background:#f0fdf4 !important}
   .medal{font-size:18px}
   .hidden{display:none !important}
+  .diag{font-size:12px; line-height:1.3; background:#fff7ed; border:1px dashed #f59e0b; color:#7c2d12; padding:8px 10px; border-radius:12px}
+  .diag code{font-size:12px}
 </style>
 </head>
 <body>
@@ -69,7 +71,7 @@
     </div>
 
     <!-- Submission Form -->
-    <form id="predictForm" class="card grid">
+    <form id="predictForm" class="card grid" aria-label="Submit a prediction">
       <div class="grid two">
         <div>
           <label for="name">Your Name</label>
@@ -183,6 +185,9 @@
         </div>
       </div>
     </div>
+
+    <!-- Diagnostics (auto-filled if something goes wrong) -->
+    <div id="diag" class="diag card hidden"></div>
   </div>
 
   <footer>
@@ -194,7 +199,7 @@
  *  CONFIG (edit these)
  *  ========================= */
 const CONFIG = {
-  API_URL: 'https://script.google.com/macros/s/AKfycbwxvAp7E9IgTOjP-ry5CNowhPVqLab76qjqiTlxCWZyY1S5FIhkB0dAEvGtipEZv262/exec', // e.g. https://script.google.com/macros/s/AKfycb.../exec
+  API_URL: 'https://script.google.com/macros/s/AKfycbwxvAp7E9IgTOjP-ry5CNowhPVqLab76qjqiTlxCWZyY1S5FIhkB0dAEvGtipEZv262/exec',
   ADMIN_PASSPHRASE_HINT: 'Ask Tim 💪',
   APP_NAME: 'Carney Arrival Predictor',
 };
@@ -204,79 +209,31 @@ const CONFIG = {
  *  ========================= */
 const $ = s => document.querySelector(s);
 const fmt = {
-  maskPhone: p => {
-    const d = (p||'').replace(/\D/g,'');
-    if (d.length < 4) return '(•••) •••-' + d;
-    return '(•••) •••-' + d.slice(-4);
-  },
+  maskPhone: p => { const d=(p||'').replace(/\D/g,''); return d.length<4? '(•••) •••-'+d : '(•••) •••-'+d.slice(-4); },
   iso: d => new Date(d).toISOString(),
-  localDateTimeInputValue: iso => {
-    if (!iso) return '';
-    const d = new Date(iso);
-    const pad = n => String(n).padStart(2,'0');
-    return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())+"T"+pad(d.getHours())+":"+pad(d.getMinutes());
-  },
-  toLocal: iso => {
-    const d = new Date(iso);
-    return d.toLocaleString([], {hour:'2-digit',minute:'2-digit',month:'short',day:'numeric'});
-  },
-  deltaLabel: (a,b) => {
-    const ms = Math.abs(new Date(a)-new Date(b));
-    const m = Math.floor(ms/60000);
-    const h = Math.floor(m/60);
-    const mm = m%60;
-    return (h?`${h}h `:'')+`${mm}m`;
-  },
+  localDateTimeInputValue: iso => { if(!iso) return ''; const d=new Date(iso),pad=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`; },
+  toLocal: iso => new Date(iso).toLocaleString([], {hour:'2-digit',minute:'2-digit',month:'short',day:'numeric'}),
+  deltaLabel: (a,b)=>{ const ms=Math.abs(new Date(a)-new Date(b)); const m=Math.floor(ms/60000),h=Math.floor(m/60),mm=m%60; return (h?`${h}h `:'')+`${mm}m`; },
   nowIso: () => new Date().toISOString(),
-  clamp: (x,min,max)=>Math.max(min,Math.min(max,x)),
   confetti: ()=>{
-    // ultra-tiny confetti: sprinkle a few emojis
-    const e = document.createElement('div');
-    e.style.position='fixed'; e.style.inset='0'; e.style.pointerEvents='none';
-    for(let i=0;i<24;i++){
-      const s=document.createElement('div');
-      s.textContent = ['🎉','🎊','🍼','💖','✨'][Math.floor(Math.random()*5)];
-      s.style.position='absolute';
-      s.style.left = Math.random()*100+'%';
-      s.style.top = '-10px';
-      s.style.fontSize = (16+Math.random()*14)+'px';
-      s.style.animation = `fall ${2+Math.random()*2}s linear ${Math.random()}s forwards`;
-      e.appendChild(s);
-    }
-    const st = document.createElement('style');
-    st.textContent = `@keyframes fall{to{transform:translateY(110vh) rotate(1turn);opacity:.2}}`;
-    document.body.appendChild(st);
-    document.body.appendChild(e);
-    setTimeout(()=>e.remove(), 5000);
+    const e=document.createElement('div'); e.style.position='fixed'; e.style.inset='0'; e.style.pointerEvents='none';
+    for(let i=0;i<24;i++){ const s=document.createElement('div'); s.textContent=['🎉','🎊','🍼','💖','✨'][Math.floor(Math.random()*5)];
+      s.style.position='absolute'; s.style.left=Math.random()*100+'%'; s.style.top='-10px'; s.style.fontSize=(16+Math.random()*14)+'px';
+      s.style.animation=`fall ${2+Math.random()*2}s linear ${Math.random()}s forwards`; e.appendChild(s);}
+    const st=document.createElement('style'); st.textContent=`@keyframes fall{to{transform:translateY(110vh) rotate(1turn);opacity:.2}}`;
+    document.body.appendChild(st); document.body.appendChild(e); setTimeout(()=>e.remove(),5000);
   }
 };
 
-// client id + cooldown
-const CLIENT = (()=> {
-  const keyId = 'cap_client_id';
-  const keyCD = 'cap_cooldown';
-  let id = localStorage.getItem(keyId);
-  if(!id){ id = crypto.randomUUID(); localStorage.setItem(keyId,id); }
-  const cooldownMs = 20*1000; // 20s per-client throttle
-  return {
-    id,
-    canPost(){
-      const last = Number(localStorage.getItem(keyCD)||0);
-      return Date.now()-last > cooldownMs;
-    },
-    notePost(){ localStorage.setItem(keyCD, String(Date.now())); }
-  }
-})();
-
 /** =========================
- *  STORAGE ABSTRACTION
- *  Swappable backend API surface.
+ *  CORS-safe storage client + healthcheck
  *  ========================= */
 const storage = {
-  async api(action, payload={}){
+  // Use text/plain to avoid OPTIONS preflight (prevents “Failed to fetch” from Pages)
+  async api(action, payload={}) {
     const res = await fetch(CONFIG.API_URL, {
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify({action, payload})
     });
     if(!res.ok) throw new Error(`API error ${res.status}`);
@@ -284,262 +241,168 @@ const storage = {
     if(data.error) throw new Error(data.error);
     return data;
   },
-  // public
   listPredictions(){ return this.api('listPredictions'); },
   getSettings(){ return this.api('getSettings'); },
   savePrediction(p){ return this.api('savePrediction', p); },
-  // admin
   setWindow(startIso, adminPass){ return this.api('setWindow', {startIso, adminPass}); },
   toggleSubmissions(adminPass){ return this.api('toggleSubmissions', {adminPass}); },
   setActualArrival(iso, adminPass){ return this.api('setActualArrival', {iso, adminPass}); },
   exportCSV(adminPass){ return this.api('exportCSV', {adminPass}); },
-};
 
-/** =========================
- *  APP STATE
- *  ========================= */
-const state = {
-  settings:null,
-  predictions:[],
-  sortMode:'submittedAt', // or 'predictedAt' ; when actual set, sorting switches to "rank"
-  adminUnlocked:false,
-  winner:null
-};
-
-/** =========================
- *  RENDER
- *  ========================= */
-function renderStatus(){
-  const s = state.settings;
-  const el = $('#statusBanner');
-  if(!s){ el.textContent='Loading…'; return; }
-  const now = new Date();
-  const start = new Date(s.windowStart);
-  const end = new Date(s.windowEnd);
-  const within = now>=start && now<=end;
-  if(s.actualArrivalAt){
-    el.className="status card winner";
-    el.textContent = `We have a winner! 🎉 Baby arrived ${fmt.toLocal(s.actualArrivalAt)}.`;
-  }else if(s.submissionsOpen && within){
-    el.className="status card open";
-    el.textContent = `Still baking 👶 — Predictions are OPEN.`;
-  }else{
-    el.className="status card closed";
-    el.textContent = `Labor in progress 🚀 (predictions closed)`;
+  // GET healthcheck (no preflight). Useful for surfacing clear errors in UI.
+  async health() {
+    try {
+      const r = await fetch(CONFIG.API_URL); // simple GET
+      if(!r.ok) return {ok:false, msg:`GET ${r.status}`};
+      const j = await r.json();
+      return {ok:true, json:j};
+    } catch (e) {
+      return {ok:false, msg:String(e)};
+    }
   }
+};
+
+/** =========================
+ *  STATE & RENDER
+ *  ========================= */
+const state = { settings:null, predictions:[], sortMode:'submittedAt', adminUnlocked:false, winner:null };
+
+function showDiag(msg) {
+  const d = $('#diag'); d.classList.remove('hidden');
+  d.innerHTML = `<strong>Diagnostics</strong><br>${msg}`;
 }
+
+function renderStatus(){
+  const s = state.settings, el = $('#statusBanner');
+  if(!s){ el.textContent='Loading…'; return; }
+  const now=new Date(), start=new Date(s.windowStart), end=new Date(s.windowEnd), within = now>=start && now<=end;
+  if(s.actualArrivalAt){ el.className="status card winner"; el.textContent = `We have a winner! 🎉 Baby arrived ${fmt.toLocal(s.actualArrivalAt)}.`; }
+  else if(s.submissionsOpen && within){ el.className="status card open"; el.textContent = `Still baking 👶 — Predictions are OPEN.`; }
+  else{ el.className="status card closed"; el.textContent = `Labor in progress 🚀 (predictions closed)`; }
+}
+
 function renderCountdown(){
-  const s = state.settings;
-  const block = $('#countdownBlock');
-  if(!s){ block.classList.add('hidden'); return; }
+  const s=state.settings, block=$('#countdownBlock'); if(!s){ block.classList.add('hidden'); return; }
   $('#windowRange').textContent = `${fmt.toLocal(s.windowStart)} → ${fmt.toLocal(s.windowEnd)}`;
-  const tick = ()=>{
-    const n = Date.now(), end = new Date(s.windowEnd).getTime();
-    const ms = end-n;
-    const cd = $('#countdown');
+  const tick=()=>{ const n=Date.now(), end=new Date(s.windowEnd).getTime(), ms=end-n, cd=$('#countdown');
     if(ms<=0){ cd.textContent='00:00:00'; return; }
-    const sec = Math.floor(ms/1000)%60;
-    const min = Math.floor(ms/60000)%60;
-    const hr  = Math.floor(ms/3600000);
+    const sec=Math.floor(ms/1000)%60, min=Math.floor(ms/60000)%60, hr=Math.floor(ms/3600000);
     cd.textContent = `${String(hr).padStart(2,'0')}:${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-    requestAnimationFrame(tick);
-  };
-  requestAnimationFrame(tick);
+    requestAnimationFrame(tick); }; requestAnimationFrame(tick);
 }
+
 function rankAndSort(){
-  const s = state.settings;
-  const arr = [...state.predictions];
+  const s=state.settings, arr=[...state.predictions];
   if(s.actualArrivalAt){
-    // rank by delta asc, then confidence desc, then submittedAt asc
     arr.sort((a,b)=>{
-      const da = Math.abs(new Date(a.predictedAt)-new Date(s.actualArrivalAt));
-      const db = Math.abs(new Date(b.predictedAt)-new Date(s.actualArrivalAt));
-      if(da!==db) return da-db;
-      if(b.confidence!==a.confidence) return b.confidence-a.confidence;
+      const da=Math.abs(new Date(a.predictedAt)-new Date(s.actualArrivalAt));
+      const db=Math.abs(new Date(b.predictedAt)-new Date(s.actualArrivalAt));
+      if(da!==db) return da-db; if(b.confidence!==a.confidence) return b.confidence-a.confidence;
       return new Date(a.submittedAt)-new Date(b.submittedAt);
     });
-    state.winner = arr[0] || null;
-    return arr;
-  }else{
-    if(state.sortMode==='predictedAt'){
-      arr.sort((a,b)=> new Date(a.predictedAt)-new Date(b.predictedAt));
-      return arr;
-    }
-    // default newest first
-    arr.sort((a,b)=> new Date(b.submittedAt)-new Date(a.submittedAt));
-    return arr;
+    state.winner = arr[0] || null; return arr;
   }
+  if(state.sortMode==='predictedAt'){ arr.sort((a,b)=> new Date(a.predictedAt)-new Date(b.predictedAt)); return arr; }
+  arr.sort((a,b)=> new Date(b.submittedAt)-new Date(a.submittedAt)); return arr;
 }
+
 function renderBoard(){
-  const s = state.settings;
-  const tbody = $('#tbody');
-  tbody.innerHTML='';
-  const rows = rankAndSort();
-  $('#entriesCount').textContent = `${rows.length} entries`;
-  const medals = ['🥇','🥈','🥉'];
-  rows.forEach((p,idx)=>{
-    const tr = document.createElement('tr');
-    const isWinner = s.actualArrivalAt && idx===0;
+  const s=state.settings, tbody=$('#tbody'); tbody.innerHTML=''; const rows=rankAndSort();
+  $('#entriesCount').textContent = `${rows.length} entries`; const medals=['🥇','🥈','🥉'];
+  rows.forEach((p,idx)=>{ const tr=document.createElement('tr'), isWinner=s.actualArrivalAt&&idx===0;
     tr.innerHTML = `
       <td>${isWinner?`<span class="medal">${medals[0]}</span> `:''}${escapeHtml(p.name)}</td>
       <td>${fmt.toLocal(p.predictedAt)}</td>
       <td>${p.confidence}</td>
       <td class="muted">${fmt.toLocal(p.submittedAt)}</td>
-      <td class="muted">${s.actualArrivalAt ? fmt.deltaLabel(p.predictedAt, s.actualArrivalAt) : ''}</td>
-    `;
-    if(isWinner){ tr.classList.add('winner'); }
-    tbody.appendChild(tr);
+      <td class="muted">${s.actualArrivalAt ? fmt.deltaLabel(p.predictedAt, s.actualArrivalAt) : ''}</td>`;
+    if(isWinner) tr.classList.add('winner'); tbody.appendChild(tr);
   });
   $('#sortHint').textContent = s.actualArrivalAt ? 'Sorted by closest to actual' :
     (state.sortMode==='submittedAt' ? 'Sorting: latest submissions' : 'Sorting: by predicted time');
-  // admin winner badge
-  if(s.actualArrivalAt && state.winner){
-    $('#winnerBadge').classList.remove('hidden');
-    $('#winnerText').textContent = `${state.winner.name} (${fmt.deltaLabel(state.winner.predictedAt, s.actualArrivalAt)})`;
-  }else{
-    $('#winnerBadge').classList.add('hidden');
-  }
+  if(s.actualArrivalAt && state.winner){ $('#winnerBadge').classList.remove('hidden'); $('#winnerText').textContent = `${state.winner.name} (${fmt.deltaLabel(state.winner.predictedAt, s.actualArrivalAt)})`; }
+  else $('#winnerBadge').classList.add('hidden');
 }
+
 function escapeHtml(s){return (s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 
 /** =========================
  *  EVENTS
  *  ========================= */
-$('#sortModeBtn').addEventListener('click', e=>{
-  e.preventDefault();
-  if(state.settings.actualArrivalAt){ return; }
-  state.sortMode = state.sortMode==='submittedAt' ? 'predictedAt' : 'submittedAt';
-  renderBoard();
-});
+$('#sortModeBtn').addEventListener('click', e=>{ e.preventDefault(); if(state.settings.actualArrivalAt) return; state.sortMode = state.sortMode==='submittedAt' ? 'predictedAt' : 'submittedAt'; renderBoard(); });
 
 $('#predictForm').addEventListener('submit', async e=>{
   e.preventDefault();
   if(!CLIENT.canPost()){ alert('Easy tiger — give it a few seconds before submitting again.'); return; }
-  const s = state.settings;
-  if(!s || !s.submissionsOpen){ alert('Predictions are closed.'); return; }
-
-  const name = $('#name').value.trim();
-  const phone = $('#phone').value.trim();
-  const date = $('#predDate').value;
-  const time = $('#predTime').value;
-  const confidence = parseInt($('#confidence').value,10);
-
+  const s=state.settings; if(!s || !s.submissionsOpen){ alert('Predictions are closed.'); return; }
+  const name=$('#name').value.trim(), phone=$('#phone').value.trim(), date=$('#predDate').value, time=$('#predTime').value, confidence=parseInt($('#confidence').value,10);
   if(!name||!phone||!date||!time||!confidence){ alert('Please fill everything.'); return; }
+  const predictedIso = new Date(`${date}T${time}`).toISOString();
+  if(new Date(predictedIso) < new Date(s.windowStart) || new Date(predictedIso) > new Date(s.windowEnd)){ alert('Pick a time within the 72-hour window.'); return; }
 
-  const predictedAtLocal = new Date(`${date}T${time}`);
-  const predictedIso = predictedAtLocal.toISOString();
-
-  // validate in window
-  if(new Date(predictedIso) < new Date(s.windowStart) || new Date(predictedIso) > new Date(s.windowEnd)){
-    alert('Pick a time within the 72-hour window.'); return;
-  }
-
-  $('#submitBtn').disabled = true; $('#submitBtn').textContent='Submitting…';
+  $('#submitBtn').disabled=true; $('#submitBtn').textContent='Submitting…';
   try{
-    const payload = {
-      name, phone, predictedAt: predictedIso, confidence,
-      clientId: CLIENT.id, submittedAt: fmt.nowIso()
-    };
-    await storage.savePrediction(payload);
-    CLIENT.notePost();
-    fmt.confetti();
-    $('#predictForm').reset();
-    await refresh(); // reload board
-  }catch(err){
-    alert(err.message || 'Failed to submit.');
-  }finally{
-    $('#submitBtn').disabled = false; $('#submitBtn').textContent='Submit Prediction';
-  }
+    await storage.savePrediction({name, phone, predictedAt:predictedIso, confidence, clientId: CLIENT.id, submittedAt: fmt.nowIso()});
+    CLIENT.notePost(); fmt.confetti(); $('#predictForm').reset(); await refresh();
+  }catch(err){ alert(err.message || 'Failed to submit.'); }
+  finally{ $('#submitBtn').disabled=false; $('#submitBtn').textContent='Submit Prediction'; }
 });
 
 $('#shareBtn').addEventListener('click', async ()=>{
-  const url = location.href;
-  const msg = `👶💞 Come guess Baby Carney’s arrival time!\n\nMake your pick here: ${url}`;
-  if(navigator.share){
-    try{ await navigator.share({title:CONFIG.APP_NAME, text:msg, url}); }
-    catch{}
-  }else{
-    await navigator.clipboard.writeText(msg);
-    alert('Invite copied!');
-  }
+  const url=location.href, msg=`👶💞 Come guess Baby Carney’s arrival time!\n\nMake your pick here: ${url}`;
+  if(navigator.share){ try{ await navigator.share({title:CONFIG.APP_NAME, text:msg, url}); }catch{} }
+  else{ await navigator.clipboard.writeText(msg); alert('Invite copied!'); }
 });
 
 // Admin
 $('#adminToggle').addEventListener('click', ()=>$('#adminPanel').classList.toggle('hidden'));
-$('#unlockBtn').addEventListener('click', ()=>{
-  state.adminUnlocked = !!$('#adminPass').value;
-  alert(state.adminUnlocked ? 'Admin unlocked' : 'Enter passphrase');
-});
-
-$('#windowStart').addEventListener('change', ()=>{
-  const start = new Date($('#windowStart').value);
-  const end = new Date(start.getTime() + 72*3600*1000);
-  $('#windowEnd').value = fmt.localDateTimeInputValue(end.toISOString());
-});
-
-$('#saveWindowBtn').addEventListener('click', async ()=>{
-  if(!state.adminUnlocked) return alert('Unlock admin first.');
-  const pass = $('#adminPass').value;
-  const startLocalVal = $('#windowStart').value;
-  if(!startLocalVal) return alert('Set a start datetime.');
-  const startIso = new Date(startLocalVal).toISOString();
-  try{
-    await storage.setWindow(startIso, pass);
-    await refresh();
-    alert('Window saved.');
-  }catch(e){ alert(e.message); }
-});
-
-$('#toggleSubBtn').addEventListener('click', async ()=>{
-  if(!state.adminUnlocked) return alert('Unlock admin first.');
-  try{
-    await storage.toggleSubmissions($('#adminPass').value);
-    await refresh();
-  }catch(e){ alert(e.message); }
-});
-
-$('#setActualBtn').addEventListener('click', async ()=>{
-  if(!state.adminUnlocked) return alert('Unlock admin first.');
-  const val = $('#actualArrival').value;
-  if(!val) return alert('Pick actual arrival datetime.');
-  try{
-    await storage.setActualArrival(new Date(val).toISOString(), $('#adminPass').value);
-    await refresh();
-  }catch(e){ alert(e.message); }
-});
-
-$('#exportBtn').addEventListener('click', async ()=>{
-  if(!state.adminUnlocked) return alert('Unlock admin first.');
-  try{
-    const {csv} = await storage.exportCSV($('#adminPass').value);
-    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'carney-arrival-predictions.csv';
-    a.click();
-  }catch(e){ alert(e.message); }
-});
+$('#unlockBtn').addEventListener('click', ()=>{ state.adminUnlocked = !!$('#adminPass').value; alert(state.adminUnlocked ? 'Admin unlocked' : 'Enter passphrase'); });
+$('#windowStart').addEventListener('change', ()=>{ const start=new Date($('#windowStart').value); const end=new Date(start.getTime()+72*3600*1000); $('#windowEnd').value=fmt.localDateTimeInputValue(end.toISOString()); });
+$('#saveWindowBtn').addEventListener('click', async ()=>{ if(!state.adminUnlocked) return alert('Unlock admin first.'); const pass=$('#adminPass').value, v=$('#windowStart').value; if(!v) return alert('Set a start datetime.');
+  try{ await storage.setWindow(new Date(v).toISOString(), pass); await refresh(); alert('Window saved.'); }catch(e){ alert(e.message); } });
+$('#toggleSubBtn').addEventListener('click', async ()=>{ if(!state.adminUnlocked) return alert('Unlock admin first.'); try{ await storage.toggleSubmissions($('#adminPass').value); await refresh(); }catch(e){ alert(e.message); } });
+$('#setActualBtn').addEventListener('click', async ()=>{ if(!state.adminUnlocked) return alert('Unlock admin first.'); const v=$('#actualArrival').value; if(!v) return alert('Pick actual arrival datetime.');
+  try{ await storage.setActualArrival(new Date(v).toISOString(), $('#adminPass').value); await refresh(); }catch(e){ alert(e.message); } });
+$('#exportBtn').addEventListener('click', async ()=>{ if(!state.adminUnlocked) return alert('Unlock admin first.');
+  try{ const {csv}=await storage.exportCSV($('#adminPass').value); const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='carney-arrival-predictions.csv'; a.click(); }catch(e){ alert(e.message); } });
 
 /** =========================
- *  LOAD / REFRESH
+ *  CLIENT throttle
+ *  ========================= */
+const CLIENT = (()=> {
+  const keyId='cap_client_id', keyCD='cap_cooldown';
+  let id = localStorage.getItem(keyId); if(!id){ id=crypto.randomUUID(); localStorage.setItem(keyId,id); }
+  const cooldownMs=20*1000;
+  return { id, canPost(){ const last=Number(localStorage.getItem(keyCD)||0); return Date.now()-last>cooldownMs; }, notePost(){ localStorage.setItem(keyCD,String(Date.now())); } };
+})();
+
+/** =========================
+ *  LOAD / REFRESH with health diagnostics
  *  ========================= */
 async function refresh(){
-  const [settingsRes, listRes] = await Promise.all([
-    storage.getSettings(),
-    storage.listPredictions()
-  ]);
-  state.settings = settingsRes.settings;
-  state.predictions = listRes.predictions;
-  // set admin panel fields
-  $('#windowStart').value = fmt.localDateTimeInputValue(state.settings.windowStart);
-  $('#windowEnd').value = fmt.localDateTimeInputValue(state.settings.windowEnd);
-  $('#actualArrival').value = fmt.localDateTimeInputValue(state.settings.actualArrivalAt);
-  renderStatus();
-  renderCountdown();
-  renderBoard();
+  try{
+    const [settingsRes, listRes] = await Promise.all([storage.getSettings(), storage.listPredictions()]);
+    state.settings=settingsRes.settings; state.predictions=listRes.predictions;
+    $('#windowStart').value = fmt.localDateTimeInputValue(state.settings.windowStart);
+    $('#windowEnd').value = fmt.localDateTimeInputValue(state.settings.windowEnd);
+    $('#actualArrival').value = fmt.localDateTimeInputValue(state.settings.actualArrivalAt);
+    renderStatus(); renderCountdown(); renderBoard();
+  }catch(e){
+    // If fetch failed (preflight/CORS/blocked), run a health GET and print a clear diag.
+    const ping = await storage.health();
+    let hint = `<div><strong>API URL</strong>: <code>${CONFIG.API_URL}</code></div>`;
+    if(!ping.ok) hint += `<div><strong>GET health</strong>: ${ping.msg}</div>`;
+    hint += `<ul style="margin:6px 0 0 16px">
+      <li>Make sure Apps Script Web App is deployed as: <em>Execute as Me</em>, <em>Anyone with the link</em>.</li>
+      <li>Ensure this file uses <code>text/plain</code> POST (already set) to avoid preflight.</li>
+      <li>Try a private window; some extensions block <code>script.google.com</code>.</li>
+    </ul>`;
+    showDiag(`<div>Failed to load settings. Error: <code>${String(e)}</code></div>${hint}`);
+    alert('Failed to load. Check API URL.\n' + e.message);
+  }
 }
 
-refresh().catch(e=> alert('Failed to load. Check API URL.\n' + e.message));
+refresh();
 </script>
 </body>
 </html>
