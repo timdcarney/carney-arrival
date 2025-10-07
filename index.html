@@ -419,11 +419,32 @@ $('#predictForm').addEventListener('submit', async e=>{
   }
 });
 
+// Share (exact 3-line format: title, tagline, URL)
 $('#shareBtn').addEventListener('click', async ()=>{
-  const url = location.href, msg = `👶💞 Come guess Baby Carney’s arrival time!\n\nMake your pick here: ${url}`;
-  if(navigator.share){ try{ await navigator.share({title:CONFIG.APP_NAME, text:msg, url}); }catch{} }
-  else { try{ await navigator.clipboard.writeText(msg); alert('Invite copied!'); }catch{ alert('Link: '+url); } }
+  const url = 'https://timdcarney.github.io/carney-arrival/'; // hardcode to avoid odd base URLs
+  const text =
+`${CONFIG.APP_NAME}
+👶💞 Come guess Baby Carney’s arrival time!
+${url}`;
+
+  // Use Web Share API if available
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: CONFIG.APP_NAME, text }); // no url field; text already includes it
+      return;
+    } catch (_) { /* fall through to clipboard */ }
+  }
+
+  // Fallback: copy the exact block to clipboard
+  try {
+    await navigator.clipboard.writeText(text);
+    alert('Invite copied!');
+  } catch {
+    // Last resort: show the text so the user can copy
+    alert(text);
+  }
 });
+
 
 // Admin toggles
 $('#adminToggle').addEventListener('click', ()=>{ const p=$('#adminPanel'); p.style.display = (p.style.display==='none'||!p.style.display)?'grid':'none'; });
